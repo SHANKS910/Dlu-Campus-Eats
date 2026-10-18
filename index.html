@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>校园食堂评分网 | Campus Eats</title>
+  <meta name="description" content="发现校园美食，查看食堂窗口评分和价格。">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, "Microsoft YaHei", sans-serif;
+      background: #f7f7f2;
+      color: #25352b;
+    }
+    header {
+      background: #183e32;
+      color: white;
+      padding: 20px 6%;
+    }
+    .brand { font-size: 22px; font-weight: 800; }
+    .hero {
+      padding: 46px 6%;
+      background: #e8efdf;
+    }
+    .hero h1 { font-size: clamp(28px, 5vw, 46px); margin: 0 0 12px; }
+    .hero p { line-height: 1.8; color: #506355; }
+    main { max-width: 1100px; margin: auto; padding: 28px 18px; }
+    .tools { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
+    input, select {
+      padding: 12px;
+      border: 1px solid #d5ddd4;
+      border-radius: 10px;
+      background: white;
+      font-size: 15px;
+    }
+    input { flex: 1; min-width: 180px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 18px;
+    }
+    .card {
+      background: white;
+      border: 1px solid #e7e9e1;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 5px 18px #243b2b0a;
+    }
+    .emoji { font-size: 38px; }
+    .card h3 { margin: 10px 0; }
+    .tag {
+      display: inline-block;
+      background: #edf3e9;
+      padding: 5px 9px;
+      border-radius: 20px;
+      font-size: 12px;
+    }
+    .rating { color: #b56a10; font-weight: 800; }
+    .muted { color: #788178; font-size: 14px; }
+    footer {
+      text-align: center;
+      padding: 30px 15px;
+      color: #788178;
+      font-size: 13px;
+    }
+    @media (max-width: 480px) {
+      .hero { padding: 34px 20px; }
+      .tools { flex-direction: column; }
+      input, select { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">🍜 Campus Eats</div>
+    <div style="margin-top:6px;font-size:13px">
+      发现校园里的好味道
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1>今天吃什么？</h1>
+    <p>看看同学们怎么评价，找到好吃又实惠的食堂窗口。</p>
+    <p>用真实体验，发现校园美食。</p>
+  </section>
+
+  <main>
+    <h2>🍱 食堂窗口</h2>
+    <p class="muted">以下为演示数据，正式使用前请核实窗口信息。</p>
+
+    <div class="tools">
+      <input id="search" placeholder="搜索窗口或菜品……">
+      <select id="category">
+        <option value="全部">全部类型</option>
+        <option value="面食">面食</option>
+        <option value="米饭">米饭</option>
+        <option value="小吃">小吃</option>
+      </select>
+      <select id="sort">
+        <option value="default">默认排序</option>
+        <option value="rating">评分从高到低</option>
+        <option value="price">价格从低到高</option>
+      </select>
+    </div>
+
+    <div id="list" class="grid"></div>
+    <p id="empty" hidden>没有找到相关窗口，试试其他关键词。</p>
+  </main>
+
+  <footer>
+    校园美食，由同学共同发现。<br>
+    本网站为学生练习项目，与学校官方无关。
+  </footer>
+
+  <script>
+    // 示例数据：请用真实核实的信息替换
+    const stalls = [
+      { name: "小爆炒同学烤鸭饭", category: "米饭",
+        dish: "干拌烤鸭饭", price: 15, rating: 4.6,
+        count: 38, emoji: "🍜" },
+      { name: "二食堂自选餐", category: "米饭",
+        dish: "两荤一素", price: 15, rating: 4.3,
+        count: 25, emoji: "🍱" },
+      { name: "三食堂麻辣烫", category: "小吃",
+        dish: "麻辣烫", price: 16, rating: 4.8,
+        count: 42, emoji: "🥘" },
+      { name: "一食堂鸡腿饭", category: "米饭",
+        dish: "香酥鸡腿饭", price: 13, rating: 4.5,
+        count: 31, emoji: "🍗" },
+      { name: "二食堂馄饨铺", category: "面食",
+        dish: "鲜肉馄饨", price: 10, rating: 4.1,
+        count: 17, emoji: "🥟" },
+      { name: "三食堂煎饼摊", category: "小吃",
+        dish: "鸡蛋煎饼", price: 7, rating: 4.4,
+        count: 21, emoji: "🥞" },
+      { name: "沂蒙人家煎饼果子", category: "小吃",
+        dish: "鸡蛋灌饼", price: 6, rating: 4.6,
+        count: 38, emoji: "🍜" }
+
+    ];
+
+    const search = document.querySelector("#search");
+    const category = document.querySelector("#category");
+    const sort = document.querySelector("#sort");
+    const list = document.querySelector("#list");
+    const empty = document.querySelector("#empty");
+
+    function render() {
+      const keyword = search.value.trim().toLowerCase();
+
+      let results = stalls.filter(stall => {
+        const text = (stall.name + stall.dish).toLowerCase();
+        return text.includes(keyword) &&
+          (category.value === "全部" ||
+           stall.category === category.value);
+      });
+
+      if (sort.value === "rating") {
+        results.sort((a, b) => b.rating - a.rating);
+      } else if (sort.value === "price") {
+        results.sort((a, b) => a.price - b.price);
+      }
+
+      list.innerHTML = results.map(stall => `
+        <article class="card">
+          <div class="emoji">${stall.emoji}</div>
+          <span class="tag">${stall.category}</span>
+          <h3>${stall.name}</h3>
+          <p>${stall.dish}</p>
+          <p class="rating">★ ${stall.rating.toFixed(1)}
+            <span class="muted">（${stall.count} 条示例评价）</span>
+          </p>
+          <p>人均约 <strong>¥${stall.price}</strong></p>
+        </article>
+      `).join("");
+
+      empty.hidden = results.length > 0;
+    }
+
+    search.addEventListener("input", render);
+    category.addEventListener("change", render);
+    sort.addEventListener("change", render);
+    render();
+  </script>
+</body>
+</html>
